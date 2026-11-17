@@ -1,5 +1,6 @@
 # Raw downloads stay local: FotMob data is not openly licensed.
 data/raw/
+data/processed/
 __pycache__/
 *.pyc
 .venv/
