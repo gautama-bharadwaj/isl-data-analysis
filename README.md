@@ -6,12 +6,15 @@ Who are the best players in each position in Indian Super League history, and ho
 
 ## Data
 
-| Seasons | What's available | Source |
-|---|---|---|
-| 2014 to 2017–18 | Results and basic match data | [FotMob](https://www.fotmob.com/leagues/9478/overview/indian-super-league) |
-| 2018–19, 2020–21 onward | Per-match player stats: xG, xA, shots, passes, dribbles, tackles, interceptions, clearances, saves and more, plus shot maps | [FotMob](https://www.fotmob.com/leagues/9478/overview/indian-super-league) |
-| 2019–20 | Per-match player stats without xG | [FotMob](https://www.fotmob.com/leagues/9478/overview/indian-super-league) |
-| 2021–22 | Full event data for all 115 matches | [StatsBomb open data](https://github.com/statsbomb/open-data) |
+Downloaded 2026-11-17: all 1,236 finished matches from 13 seasons. Full numbers are in [`data/coverage.csv`](data/coverage.csv).
+
+| Seasons | Matches | What's available | Source |
+|---|---|---|---|
+| 2014 to 2017–18 | 278 | Results only, no player data | [FotMob](https://www.fotmob.com/leagues/9478/overview/indian-super-league) |
+| 2018–19 | 95 | Season leaderboards with xG; per-match player stats for only 15 matches | FotMob |
+| 2019–20 | 95 | Per-match player stats (93 matches) and leaderboards, no xG | FotMob |
+| 2020–21 onward | 768 | Per-match player stats with xG, xA, passes, dribbles, tackles, clearances, saves and more, plus shot maps, for every match | FotMob |
+| 2021–22 | 115 | Full event data for every match | [StatsBomb open data](https://github.com/statsbomb/open-data) |
 
 Raw downloads are kept out of the repository (`data/raw/` is git-ignored). Only computed tables are published.
 
