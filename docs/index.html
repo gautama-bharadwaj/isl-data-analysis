@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ISL in Numbers</title>
+  <meta name="description" content="Every Indian Super League season since 2014: league trends, champions, the best player at every position and all-time leaderboards.">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Ccircle cx='16' cy='16' r='8' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html">ISL in Numbers</a>
+    <nav>
+      <a href="#league">The league</a>
+      <a href="#champions">Champions</a>
+      <a href="#xi">Best XI</a>
+      <a href="#positions">By position</a>
+      <a href="#leaders">Leaderboards</a>
+      <a href="#method">Method</a>
+      <a href="explore.html">Explore →</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="Switch color theme">Auto</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Thirteen seasons of the<br>Indian Super League</h1>
+    <p class="lede">Every match since the first kick-off in October 2014: how the league has changed, who won it, and who the best players at each position have been, measured with per-match stats and expected goals (xG).</p>
+    <div class="tiles" id="hero-tiles"></div>
+  </section>
+
+  <!-- 1. LEAGUE -->
+  <section class="chapter" id="league">
+    <div class="kicker">1 · The league</div>
+    <h2>Goals have settled near three a game, but chances are harder to finish</h2>
+    <p>Scoring jumped after the first season and has hovered between 2.4 and 3.1 goals a match since. Teams take about the same number of shots as they did in 2019–20, but fewer of them go in.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Goals per match</h3>
+        <p class="sub">Average goals per match, all competitions in each season</p>
+        <div class="chart" id="c-goals"></div>
+      </div>
+      <div class="card">
+        <h3>Shot conversion</h3>
+        <p class="sub">Share of shots that became goals (%). Shot data starts in 2019–20</p>
+        <div class="chart" id="c-conversion"></div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:40px;font-size:24px">The season without home advantage</h2>
+    <p>In 2020–21 the whole league was played behind closed doors in Goa, so no team was really at home. Home wins fell to <strong id="bubble-home">30%</strong> and draws rose to <strong id="bubble-draw">39%</strong>. Home advantage came back as soon as fans and home grounds did.</p>
+    <div class="grid one">
+      <div class="card">
+        <h3>Results by season</h3>
+        <p class="sub">Share of matches won by the home team, drawn, or won by the away team</p>
+        <div class="chart" id="c-results"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>How goals are scored</h3>
+        <p class="sub">Share of goals (%) from set pieces, penalties and headers. Shot data starts in 2020–21</p>
+        <div class="chart" id="c-goaltypes"></div>
+      </div>
+      <div class="card">
+        <h3>Minutes played by Indian players</h3>
+        <p class="sub">Share of all player minutes (%) that went to Indian players</p>
+        <div class="chart" id="c-indian"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CHAMPIONS -->
+  <section class="chapter" id="champions">
+    <div class="kicker">2 · Champions</div>
+    <h2>Topping the table and lifting the trophy are different things</h2>
+    <p>The ISL crowns its champion in a playoff final, and the regular-season leader has gone on to win it only <strong id="double-count">a few times</strong>. Clubs are shown under their current names, so Mohun Bagan SG includes ATK and ATK Mohun Bagan, and SC Delhi includes Hyderabad FC.</p>
+    <div class="grid one">
+      <div class="card">
+        <h3>Season by season</h3>
+        <p class="sub">Regular-season leader, the leader's record, and the playoff champion. <span class="champ">Blue</span> marks a club that did both</p>
+        <div class="table-scroll" style="max-height:none"><table class="data" id="t-champions"></table></div>
+      </div>
+    </div>
+    <div class="grid one">
+      <div class="card">
+        <h3>Points against expected goal difference</h3>
+        <p class="sub">Each dot is one club in one regular season since 2020–21. Points per match against xG difference per match</p>
+        <div class="chart tall" id="c-xgpts"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. BEST XI -->
+  <section class="chapter" id="xi">
+    <div class="kicker">3 · Best XI</div>
+    <h2>The best XI since 2019–20</h2>
+    <p>The top-rated player at each spot of a 4-3-3, from players with at least 2,000 minutes since 2019–20, when player stats begin. The number on each player is their position score out of 100: how they rank against everyone else who played that position. The Indian XI applies the same scores to Indian players only.</p>
+    <div class="seg" role="group" aria-label="Choose XI">
+      <button type="button" aria-pressed="true" data-xi="all_time">All players</button>
+      <button type="button" aria-pressed="false" data-xi="all_time_indian">Indian players</button>
+    </div>
+    <div class="pitch" id="pitch" aria-label="Best XI"></div>
+    <p class="legend-note">Scores compare players within the same position, so a 90 for a keeper and a 90 for a striker mean the same thing: better than about 90% of qualified players at that position.</p>
+  </section>
+
+  <!-- 4. POSITIONS -->
+  <section class="chapter" id="positions">
+    <div class="kicker">4 · By position</div>
+    <h2>The top ten at every position</h2>
+    <p>Each score combines several stats for that position. Every stat becomes a percentile against the other qualified players at the position, and the percentiles are weighted. The columns show each player's percentile for each stat, so you can see why they rank where they do.</p>
+    <div class="tabs" role="tablist" id="pos-tabs"></div>
+    <div class="card" style="margin-top:16px">
+      <p class="sub" id="pos-sub"></p>
+      <div class="table-scroll" style="max-height:none"><table class="data" id="t-pos"></table></div>
+      <details class="table-view"><summary>How this position is scored</summary><ul class="weights" id="pos-weights"></ul></details>
+    </div>
+  </section>
+
+  <!-- 5. LEADERS -->
+  <section class="chapter" id="leaders">
+    <div class="kicker">5 · Leaderboards</div>
+    <h2>All-time scorers, finishers and shot-stoppers</h2>
+    <p>Sunil Chhetri is the ISL's all-time top scorer. The scorers chart counts every goal since 2014. The other charts use the xG era from 2020–21, where we can compare goals with the quality of chances.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>All-time top scorers</h3>
+        <p class="sub">Goals since 2014, with penalties shown separately</p>
+        <div class="chart tall" id="c-scorers"></div>
+      </div>
+      <div class="card">
+        <h3>Best and worst finishers</h3>
+        <p class="sub">Goals minus xG since 2020–21, for players with at least 5 xG</p>
+        <div class="chart tall" id="c-finishing"></div>
+      </div>
+      <div class="card">
+        <h3>Direct free-kick goals</h3>
+        <p class="sub">Goals scored straight from a free kick since 2020–21</p>
+        <div class="chart" id="c-freekicks"></div>
+      </div>
+      <div class="card">
+        <h3>Goals prevented by keepers</h3>
+        <p class="sub">Goals kept out compared with an average ISL keeper facing the same shots, since 2020–21 (2,000+ minutes)</p>
+        <div class="chart" id="c-keepers"></div>
+      </div>
+    </div>
+    <div class="callout">More leaderboards, every player season and side-by-side player comparisons are in the <a href="explore.html">explorer</a>.</div>
+  </section>
+
+  <!-- 6. METHOD -->
+  <section class="chapter" id="method">
+    <div class="kicker">6 · Method and data</div>
+    <h2>Where the numbers come from</h2>
+    <div class="prose">
+      <p><strong>Data.</strong> Match, player and shot data comes from <a href="https://www.fotmob.com/leagues/9478/overview/indian-super-league">FotMob</a>. Results and goals cover every season from 2014. Per-player match stats start in 2019–20 (2018–19 has them for only 15 matches), and xG and shot maps start in 2020–21. <a href="https://github.com/statsbomb/open-data">StatsBomb</a> also publishes free event data for 2021–22.</p>
+      <p><strong>Positions.</strong> Each player's position is where they most often started: goalkeeper, centre-back, full-back or wing-back, central midfielder, attacking midfielder or winger, or striker.</p>
+      <p><strong>Rankings.</strong> Stats are converted to per-90-minute rates and percentages. All-time rankings need 2,000 minutes and season rankings need 900. Each stat becomes a percentile among qualified players at the same position, and the percentiles are combined with position-specific weights, shown under each position table above.</p>
+      <p><strong>Limits.</strong> Event data can't capture everything: positioning, pressing and leadership don't show up in tackles and passes. A player's score also depends on the team around them. Treat the rankings as a well-informed starting point for argument, not a final verdict.</p>
+      <p>Code and pipeline: <a href="https://github.com/gautama-bharadwaj/isl-data-analysis">github.com/gautama-bharadwaj/isl-data-analysis</a>.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">Data: <a href="https://www.fotmob.com/">FotMob</a> and <a href="https://statsbomb.com/">StatsBomb</a>. Charts: <a href="https://echarts.apache.org/">Apache ECharts</a>. <span id="generated"></span></div>
+</footer>
+
+<script src="assets/vendor/echarts.min.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/story.js"></script>
+</body>
+</html>

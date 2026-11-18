@@ -2,7 +2,7 @@
 
 Who are the best players in each position in Indian Super League history, and how has the league changed since 2014? This project collects match and player data for every ISL season and turns it into a report published with GitHub Pages.
 
-**Status:** data collected, cleaned and analysed. The website comes next.
+**Status:** complete. The site is published with GitHub Pages at https://gautama-bharadwaj.github.io/isl-data-analysis/.
 
 ## Data
 
@@ -51,6 +51,15 @@ The FotMob script pauses between requests and skips files it already has, so it 
 
 **Checks.** Player goals plus own goals match the final score in all but one of the 876 matches with player stats.
 
+## Website
+
+The site in `docs/` is published with GitHub Pages by `.github/workflows/pages.yml` whenever `docs/` changes on `main`.
+
+- **The report** (`docs/index.html`): league trends, champions, the best XI, the top ten at every position, and all-time leaderboards.
+- **The explorer** (`docs/explore.html`): every player season in a sortable table, side-by-side player comparison, league tables and the best players of each season.
+
+To view it locally: `cd docs && python -m http.server`, then open http://localhost:8000.
+
 ## How players are ranked
 
 Rankings use seasons with per-player stats, which means 2019–20 onward. xG-based stats start in 2020–21.
@@ -66,3 +75,4 @@ The all-time scorers list is different: it counts every goal since 2014.
 
 - [FotMob](https://www.fotmob.com/) for match and player statistics.
 - [StatsBomb](https://statsbomb.com/) for the free 2021–22 ISL event data.
+- [Apache ECharts](https://echarts.apache.org/) for the charts (bundled in `docs/assets/vendor/`).
