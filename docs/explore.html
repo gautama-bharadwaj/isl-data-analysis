@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ISL Data Explorer</title>
+  <meta name="description" content="Sort every Indian Super League player season, compare two players, and browse league tables and season awards.">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Ccircle cx='16' cy='16' r='8' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html">ISL in Numbers</a>
+    <nav>
+      <a href="index.html">← The report</a>
+      <a href="explore.html" class="active">Explore</a>
+    </nav>
+    <button class="theme-btn" type="button" aria-label="Switch color theme">Auto</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero" style="padding-bottom:0">
+    <h1 style="font-size:clamp(28px,5vw,44px)">Explore the data</h1>
+    <p class="lede">Sort every player season since 2019–20, compare two players stat by stat, and browse each season's table and best players. Stats are per 90 minutes unless marked otherwise.</p>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="players">Players</button>
+    <button role="tab" aria-selected="false" data-tab="compare">Compare</button>
+    <button role="tab" aria-selected="false" data-tab="teams">Tables</button>
+    <button role="tab" aria-selected="false" data-tab="seasons">Best by season</button>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="panel" id="panel-players">
+    <div class="filters">
+      <label>Season <select id="p-season"></select></label>
+      <label>Position <select id="p-pos"></select></label>
+      <label>Minimum minutes <select id="p-min"><option>270</option><option selected>900</option><option>1800</option></select></label>
+      <label>Players <select id="p-nat"><option value="all">All</option><option value="ind">Indian only</option><option value="for">Foreign only</option></select></label>
+      <label>Search <input id="p-search" type="search" placeholder="Player or club"></label>
+    </div>
+    <div class="card">
+      <p class="sub" id="p-count"></p>
+      <div class="table-scroll" style="max-height:640px"><table class="data" id="t-players"></table></div>
+      <p class="note">Click a column to sort. Positions: GK goalkeeper, CB centre-back, FB full-back, CM central midfielder, AM/W attacking midfielder or winger, ST striker. "Score" is the position score for that season (players with 900+ minutes). xG stats start in 2020–21.</p>
+    </div>
+  </div>
+
+  <!-- COMPARE -->
+  <div class="panel" id="panel-compare" hidden>
+    <div class="filters">
+      <label>Player A <input id="c-a" list="player-list" placeholder="Type a name"></label>
+      <label>Player B <input id="c-b" list="player-list" placeholder="Type a name"></label>
+      <datalist id="player-list"></datalist>
+    </div>
+    <div class="grid one">
+      <div class="card">
+        <h3 id="c-title">Compare two players</h3>
+        <p class="sub">Each bar is the player's percentile (since 2019–20) among all players at <b>Player A's</b> position with 1,800+ minutes. 100 = best. Minutes count seasons in which the player played at least 270 minutes.</p>
+        <div class="chart tall" id="c-compare"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAMS -->
+  <div class="panel" id="panel-teams" hidden>
+    <div class="filters">
+      <label>Season <select id="t-season"></select></label>
+    </div>
+    <div class="card">
+      <div class="table-scroll" style="max-height:none"><table class="data" id="t-table"></table></div>
+      <p class="note">Regular season only. xG and style stats start in 2019–20 (xG in 2020–21). Clubs are shown under their current names.</p>
+    </div>
+    <div class="filters">
+      <label>Club <select id="t-team"></select></label>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Points per match</h3><p class="sub">Regular season, by season</p><div class="chart" id="c-team-pts"></div></div>
+      <div class="card"><h3>xG for and against per match</h3><p class="sub">Regular season, from 2020–21</p><div class="chart" id="c-team-xg"></div></div>
+    </div>
+  </div>
+
+  <!-- SEASONS -->
+  <div class="panel" id="panel-seasons" hidden>
+    <div class="filters">
+      <label>Season <select id="s-season"></select></label>
+    </div>
+    <div class="grid" id="s-grid"></div>
+    <p class="legend-note">Top three by position score among players with 900+ minutes that season.</p>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">Data: <a href="https://www.fotmob.com/">FotMob</a>. Charts: <a href="https://echarts.apache.org/">Apache ECharts</a>.</div>
+</footer>
+
+<script src="assets/vendor/echarts.min.js"></script>
+<script src="assets/charts.js"></script>
+<script src="assets/explore.js"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import re
+import zlib
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -234,6 +235,9 @@ def main() -> None:
                 row["has_player_stats"] = bool(pstats)
                 for p in pstats.values():
                     pid = int(p["id"])
+                    if pid <= 0:
+                        # A few players have no FotMob id; give each a stable id from their name.
+                        pid = -zlib.crc32(str(p.get("name")).encode())
                     li = lineup.get(pid, {})
                     vals = player_stat_values(p)
                     if not vals.get("minutes_played"):

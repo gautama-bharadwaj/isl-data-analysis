@@ -182,6 +182,7 @@ def league_trends(m: pd.DataFrame, t: pd.DataFrame, s: pd.DataFrame, p: pd.DataF
             "season": season,
             "label": season_label(season),
             "matches": len(g),
+            "goals": int(g.goals.sum()),
             "goals_per_match": r(g.goals.mean()),
             "home_win_pct": r(100 * (g.result == "H").mean(), 1),
             "draw_pct": r(100 * (g.result == "D").mean(), 1),
