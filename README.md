@@ -2,7 +2,7 @@
 
 Who are the best players in each position in Indian Super League history, and how has the league changed since 2014? This project collects match and player data for every ISL season and turns it into a report published with GitHub Pages.
 
-**Status:** data collected and cleaned into tables. The analysis and site come next.
+**Status:** data collected, cleaned and analysed. The website comes next.
 
 ## Data
 
@@ -26,6 +26,7 @@ python scripts/fetch_fotmob.py       # FotMob season stats and per-match data ->
 python scripts/fetch_statsbomb.py    # StatsBomb 2021-22 event data -> data/raw/statsbomb/
 python scripts/coverage_report.py    # what each season contains -> data/coverage.csv
 python scripts/build_tables.py       # raw JSON -> data/processed/*.csv
+python scripts/build_site_data.py    # analysis -> docs/data/*.json
 ```
 
 The FotMob script pauses between requests and skips files it already has, so it can be stopped and re-run.
@@ -42,12 +43,24 @@ The FotMob script pauses between requests and skips files it already has, so it 
 | `shots.csv` | 20,140 | Every shot with its location, xG, xG on target and situation (open play, set piece, free kick, penalty) |
 | `players.csv` | 926 | One row per player: nationality, main role, position group, matches and minutes |
 | `teams.csv` | 16 | One row per club with its former names |
+| `goals.csv` | 3,421 | Every goal since 2014 with scorer, minute, penalty and own-goal flags |
 
 **Clubs.** Renamed clubs are kept as one club under their current name: Mohun Bagan SG (formerly ATK and ATK Mohun Bagan), Odisha FC (Delhi Dynamos), SC Delhi (Hyderabad FC), East Bengal FC (SC East Bengal) and Punjab FC (RoundGlass Punjab).
 
 **Positions.** Each player's role comes from the lineup slot they started in most often: goalkeeper, centre-back, full-back or wing-back, defensive or central midfielder, attacking midfielder or winger, and striker. These are grouped into six positions for the rankings. Players who never started get FotMob's listed position instead.
 
 **Checks.** Player goals plus own goals match the final score in all but one of the 876 matches with player stats.
+
+## How players are ranked
+
+Rankings use seasons with per-player stats, which means 2019–20 onward. xG-based stats start in 2020–21.
+
+1. Every player's stats are added up and turned into per-90-minute rates and percentages.
+2. Only players with at least **2,000 minutes** count for the all-time rankings, and **900 minutes** for a single season.
+3. Each player is compared only with players in the same position. Every stat becomes a percentile (100 = best at that position), and the percentiles are combined using weights for that position. For example, strikers are weighted most on non-penalty goals and xG, and centre-backs on clearances, interceptions and aerial duels. The full list of stats and weights is in `docs/data/meta.json` and at the top of `scripts/build_site_data.py`.
+4. The best XI uses a 4-3-3 shape: the top keeper, two full-backs, two centre-backs, three central midfielders, two attacking midfielders or wingers, and a striker.
+
+The all-time scorers list is different: it counts every goal since 2014.
 
 ## Acknowledgements
 

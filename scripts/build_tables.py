@@ -8,6 +8,7 @@ Reads data/raw/fotmob/ and writes data/processed/ (git-ignored):
   shots.csv           one row per shot: location, xG, xGOT, situation (open play, free kick...)
   players.csv         one row per player: nationality, main role, position group, matches, minutes
   teams.csv           one row per club: current name and former names
+  goals.csv           one row per goal in every season since 2014: scorer, minute, penalty, own goal
 
 Usage: python scripts/build_tables.py
 """
@@ -160,7 +161,7 @@ def lineup_info(content: dict) -> dict[int, dict]:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    matches, team_rows, player_rows, shot_rows = [], [], [], []
+    matches, team_rows, player_rows, shot_rows, goal_rows = [], [], [], [], []
     team_names: dict[int, str] = {}
 
     for sdir in seasons():
@@ -187,6 +188,7 @@ def main() -> None:
                 "home_goals": hg,
                 "away_goals": ag,
                 "decided_on_penalties": False,
+                "penalty_winner": None,
                 "has_lineups": False,
                 "has_player_stats": False,
                 "has_xg": False,
@@ -196,7 +198,25 @@ def main() -> None:
                 data = load(path)
                 content = data.get("content") or {}
                 hs = (data.get("header") or {}).get("status") or {}
-                row["decided_on_penalties"] = bool(hs.get("whoLostOnPenalties"))
+                loser = hs.get("whoLostOnPenalties")
+                row["decided_on_penalties"] = bool(loser)
+                if loser:
+                    # The header uses the club's name at the time, so compare against it.
+                    header_home = (((data.get("header") or {}).get("teams") or [{}])[0]).get("name")
+                    row["penalty_winner"] = fx["away"]["name"] if loser == header_home else fx["home"]["name"]
+
+                events = ((content.get("matchFacts") or {}).get("events") or {}).get("events") or []
+                for e in events:
+                    if e.get("type") != "Goal" or e.get("isPenaltyShootoutEvent"):
+                        continue
+                    desc = str(e.get("goalDescription") or e.get("suffix") or "").lower()
+                    own = bool(e.get("ownGoal"))
+                    goal_rows.append(
+                        {"season": season, "match_id": mid, "minute": e.get("time"),
+                         "team_id": (hid if e.get("isHome") else aid) if not own else (aid if e.get("isHome") else hid),
+                         "player_id": e.get("playerId") or None, "player": e.get("fullName") or e.get("nameStr"),
+                         "own_goal": own, "penalty": "pen" in desc, "assist": e.get("assistStr")}
+                    )
                 lineup = lineup_info(content)
                 row["has_lineups"] = bool(lineup)
 
@@ -246,6 +266,7 @@ def main() -> None:
     t = pd.DataFrame(team_rows)
     p = pd.DataFrame(player_rows)
     s = pd.DataFrame(shot_rows)
+    gl = pd.DataFrame(goal_rows)
 
     # A stat that FotMob tracked in a match but left blank for a player means zero.
     stat_cols = [c for c in p.columns if c not in {
@@ -280,7 +301,16 @@ def main() -> None:
     seasons_per_team = span.groupby("team_id")["season"].agg(["min", "max", "nunique"])
     teams = teams.join(seasons_per_team.rename(columns={"min": "first_season", "max": "last_season", "nunique": "seasons"}), on="team_id")
 
+    # Early seasons have no player ids on goals: match them by exact name where that name is unique.
+    if not gl.empty:
+        gl["team_id"] = gl.team_id.astype(int)
+        known = p.groupby("player")["player_id"].agg(lambda x: x.iloc[0] if x.nunique() == 1 else None).dropna()
+        missing = gl.player_id.isna()
+        gl.loc[missing, "player_id"] = gl.loc[missing, "player"].map(known)
+        gl["team"] = gl.team_id.map(team_names)
+
     m.to_csv(OUT / "matches.csv", index=False)
+    gl.to_csv(OUT / "goals.csv", index=False)
     t.to_csv(OUT / "team_matches.csv", index=False)
     p.to_csv(OUT / "player_matches.csv", index=False)
     s.to_csv(OUT / "shots.csv", index=False)
@@ -288,7 +318,7 @@ def main() -> None:
     teams.to_csv(OUT / "teams.csv", index=False)
 
     print(f"matches {len(m)}, team rows {len(t)}, player rows {len(p)}, shots {len(s)}, "
-          f"players {len(info)}, clubs {len(teams)}")
+          f"players {len(info)}, clubs {len(teams)}, goals {len(gl)}")
 
 
 if __name__ == "__main__":
