@@ -37,7 +37,7 @@ The FotMob script pauses between requests and skips files it already has, so it 
 
 | Table | Rows | What it is |
 |---|---|---|
-| `matches.csv` | 1,236 | One row per match: teams, score, regular season or playoff, and which data the match has |
+| `matches.csv` | 1,236 | One row per match: teams, score, regular season or playoff, stadium, attendance, and which data the match has |
 | `team_matches.csv` | 2,472 | One row per team per match: xG, shots, possession, passes, tackles, clearances and more (from 2018–19) |
 | `player_matches.csv` | 26,114 | One row per player per match with every FotMob player stat (from 2018–19) |
 | `shots.csv` | 20,140 | Every shot with its location, xG, xG on target and situation (open play, set piece, free kick, penalty) |
@@ -55,7 +55,7 @@ The FotMob script pauses between requests and skips files it already has, so it 
 
 The site in `docs/` is published with GitHub Pages by `.github/workflows/pages.yml` whenever `docs/` changes on `main`.
 
-- **The report** (`docs/index.html`): league trends, champions, the best XI, the top ten at every position, and all-time leaderboards.
+- **The report** (`docs/index.html`): league trends, set-play and open-play goals, champions, crowds by season, club and stadium, the best XI, the top ten at every position, and all-time leaderboards.
 - **The explorer** (`docs/explore.html`): every player season in a sortable table, side-by-side player comparison, league tables and the best players of each season.
 
 To view it locally: `cd docs && python -m http.server`, then open http://localhost:8000.
@@ -75,4 +75,5 @@ The all-time scorers list is different: it counts every goal since 2014.
 
 - [FotMob](https://www.fotmob.com/) for match and player statistics.
 - [StatsBomb](https://statsbomb.com/) for the free 2021–22 ISL event data.
+- [Wikipedia](https://en.wikipedia.org/wiki/Indian_Super_League_attendance) for league average attendances from 2014 to 2018–19, which FotMob doesn't have.
 - [Apache ECharts](https://echarts.apache.org/) for the charts (bundled in `docs/assets/vendor/`).

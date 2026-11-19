@@ -2,7 +2,7 @@
 
 Reads data/raw/fotmob/ and writes data/processed/ (git-ignored):
 
-  matches.csv         one row per finished match: teams, score, stage, data coverage
+  matches.csv         one row per finished match: teams, score, stage, stadium, attendance, data coverage
   team_matches.csv    one row per team per match: goals, xG, shots, passes, tackles...
   player_matches.csv  one row per player per match: minutes, role, every FotMob player stat
   shots.csv           one row per shot: location, xG, xGOT, situation (open play, free kick...)
@@ -77,6 +77,35 @@ POSITION_GROUP = {
 }
 USUAL_POSITION = {0: "Goalkeeper", 1: "Defender", 2: "Midfielder", 3: "Forward"}
 FALLBACK_GROUP = {0: "Goalkeeper", 1: "Centre-back", 2: "Central midfielder", 3: "Striker"}
+
+
+# FotMob spells some grounds several ways; map them to one name each.
+def stadium_name(name: str | None, city: str | None) -> str | None:
+    if not name:
+        return None
+    n, c = name.lower(), (city or "").lower()
+    if "fatorda" in n or ("nehru" in n and ("margao" in c or "goa" in n)):
+        return "Fatorda Stadium, Margao"
+    if "nehru" in n and "kochi" in c:
+        return "Jawaharlal Nehru Stadium, Kochi"
+    if "nehru" in n:
+        return f"Jawaharlal Nehru Stadium, {(city or '').split(',')[0].strip()}"
+    if "balayogi" in n:
+        return "GMC Balayogi Stadium, Hyderabad"
+    if "jrd tata" in n:
+        return "JRD Tata Sports Complex, Jamshedpur"
+    if "vivekananda yuba bharati" in n:
+        return "Salt Lake Stadium (VYBK), Kolkata"
+    if "kishore bharati" in n:
+        return "Kishore Bharati Krirangan, Kolkata"
+    if "shiv chhatrapati" in n:
+        return "Shree Shiv Chhatrapati Sports Complex, Pune"
+    if n == "gmc stadium":
+        return "GMC Stadium, Bambolim"
+    if "kanteerava" in n:
+        return "Sree Kanteerava Stadium, Bengaluru"
+    city_short = (city or "").split(",")[0].strip()
+    return f"{name}, {city_short}" if city_short and city_short.lower() not in n else name
 
 
 def snake(text: str) -> str:
@@ -190,6 +219,10 @@ def main() -> None:
                 "away_goals": ag,
                 "decided_on_penalties": False,
                 "penalty_winner": None,
+                "stadium": None,
+                "city": None,
+                "capacity": None,
+                "attendance": None,
                 "has_lineups": False,
                 "has_player_stats": False,
                 "has_xg": False,
@@ -205,6 +238,13 @@ def main() -> None:
                     # The header uses the club's name at the time, so compare against it.
                     header_home = (((data.get("header") or {}).get("teams") or [{}])[0]).get("name")
                     row["penalty_winner"] = fx["away"]["name"] if loser == header_home else fx["home"]["name"]
+
+                info = (content.get("matchFacts") or {}).get("infoBox") or {}
+                stadium = info.get("Stadium") or {}
+                row["stadium"] = stadium_name(stadium.get("name"), stadium.get("city"))
+                row["city"] = stadium.get("city")
+                row["capacity"] = stadium.get("capacity") or None
+                row["attendance"] = info.get("Attendance") or None
 
                 events = ((content.get("matchFacts") or {}).get("events") or {}).get("events") or []
                 for e in events:
