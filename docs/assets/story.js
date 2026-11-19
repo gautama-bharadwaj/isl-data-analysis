@@ -2,7 +2,7 @@
 (async function () {
   const S = window.SITE;
   S.initThemeToggle();
-  const d = await S.load(['seasons', 'teams', 'best_xi', 'positions', 'leaderboards', 'meta']);
+  const d = await S.load(['seasons', 'teams', 'best_xi', 'positions', 'leaderboards', 'meta', 'set_play', 'attendance']);
   const seasons = d.seasons;
   const labels = seasons.map((s) => s.label);
   const fmt = S.fmtNum;
@@ -87,6 +87,42 @@
   }));
   S.tableView('c-indian', ['Season', 'Indian share of minutes %'], indSeasons.map((s) => [s.label, s.indian_minutes_pct]));
 
+  // ---- set plays
+  const sp = d.set_play;
+  document.querySelectorAll('.sp-first').forEach((e) => { e.textContent = sp.first_season; });
+  const peak = sp.by_season.reduce((a, b) => (b.set_play_pct > a.set_play_pct ? b : a));
+  document.getElementById('sp-peak').textContent = `${peak.label} (${Math.round(peak.set_play_pct)}%)`;
+  const typeColor = (t, name) => ({ 'Open play': t.series[0], Corners: t.series[1], 'Free kicks': t.series[2], 'Throw-ins': t.series[3],
+    Penalties: t.series[4], 'Own goals': t.axis })[name];
+  const pctOf = (row, name, total) => (100 * (row.counts[name] || 0)) / total;
+  S.make('c-setplay', (t) => Object.assign(S.base(t, { tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' },
+    formatter: (ps) => `<b>${ps[0].name}</b> · ${sp.by_season[ps[0].dataIndex].goals} goals<br>` + ps.slice().reverse().map((p) => `${p.marker} ${p.seriesName}: ${fmt(p.value, 1)}% (${sp.by_season[p.dataIndex].counts[p.seriesName]})`).join('<br>') }) }), {
+    grid: { left: 8, right: 16, top: 70, bottom: 8, containLabel: true },
+    xAxis: Object.assign(S.axisStyle(t), { type: 'category', data: sp.by_season.map((x) => x.label) }),
+    yAxis: Object.assign(S.axisStyle(t), { type: 'value', max: 100, axisLabel: { color: t.muted, fontSize: 11, formatter: '{value}%' } }),
+    series: sp.types.map((name, i) => ({
+      type: 'bar', stack: 'g', name, barMaxWidth: 40, data: sp.by_season.map((x) => pctOf(x, name, x.goals)),
+      itemStyle: { color: typeColor(t, name), borderColor: t.surface, borderWidth: 1, borderRadius: i === sp.types.length - 1 ? [4, 4, 0, 0] : 0 },
+      label: i === sp.types.length - 1 ? { show: true, position: 'top', color: t.ink2, fontSize: 11,
+        formatter: (p) => `Set plays ${Math.round(sp.by_season[p.dataIndex].set_play_pct)}%` } : undefined,
+    })),
+  }));
+  S.tableView('c-setplay', ['Season', 'Goals', ...sp.types, 'Set plays + penalties %'],
+    sp.by_season.map((x) => [x.label, x.goals, ...sp.types.map((n) => x.counts[n]), x.set_play_pct]));
+
+  const clubTypes = sp.types.filter((n) => n !== 'Own goals');
+  S.make('c-setplay-club', (t) => Object.assign(S.base(t, { tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' },
+    formatter: (ps) => `<b>${esc(ps[0].name)}</b> · ${sp.by_club[ps[0].dataIndex].goals} goals<br>` + ps.map((p) => `${p.marker} ${p.seriesName}: ${fmt(p.value, 1)}%`).join('<br>') }) }), {
+    grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
+    yAxis: Object.assign(S.axisStyle(t, { splitLine: { show: false } }), { type: 'category', inverse: true, data: sp.by_club.map((c) => c.team), axisLabel: { color: t.ink2, fontSize: 12 } }),
+    xAxis: Object.assign(S.axisStyle(t), { type: 'value', max: 100, axisLabel: { color: t.muted, fontSize: 11, formatter: '{value}%' } }),
+    series: clubTypes.map((name, i) => ({ type: 'bar', stack: 'c', name, barMaxWidth: 16,
+      data: sp.by_club.map((c) => pctOf(c, name, c.goals)),
+      itemStyle: { color: typeColor(t, name), borderColor: t.surface, borderWidth: 1, borderRadius: i === clubTypes.length - 1 ? [0, 4, 4, 0] : 0 } })),
+  }));
+  S.tableView('c-setplay-club', ['Club', 'Goals', ...clubTypes, 'Set plays + penalties %'],
+    sp.by_club.map((c) => [c.team, c.goals, ...clubTypes.map((n) => c.counts[n]), c.set_play_pct]));
+
   // ---- champions table
   const bySeason = {};
   d.teams.forEach((t) => { (bySeason[t.season] = bySeason[t.season] || []).push(t); });
@@ -119,6 +155,73 @@
   }));
   S.tableView('c-xgpts', ['Season', 'Club', 'Points per match', 'xG for', 'xG against', 'Champion'],
     xgTeams.map((x) => [x.label, x.team, x.points_per_match, x.xg, x.xga, x.won_final ? 'Yes' : '']), (v, i) => (i === 2 ? fmt(v, 2) : fmt(v)));
+
+  // ---- crowds
+  const att = d.attendance;
+  const attSeasons = att.by_season;
+  const withAvg = attSeasons.filter((x) => x.average != null);
+  const top = withAvg.reduce((a, b) => (b.average > a.average ? b : a));
+  const lastFull = withAvg.filter((x) => x.season !== seasons[seasons.length - 1].season).slice(-1)[0];
+  document.getElementById('att-peak').textContent = fmt(Math.round(top.average / 100) * 100);
+  document.getElementById('att-peak-season').textContent = top.label;
+  document.getElementById('att-latest').textContent = fmt(Math.round(lastFull.average / 100) * 100);
+  document.getElementById('att-latest-season').textContent = lastFull.label;
+  document.getElementById('att-top').textContent = fmt(att.biggest_crowds[0].attendance);
+  S.make('c-att-season', (t) => Object.assign(S.base(t, { tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' },
+    formatter: (ps) => { const x = attSeasons[ps[0].dataIndex]; return `<b>${x.label}</b><br>` + (x.status === 'closed_doors' ? 'Behind closed doors' : x.average == null ? 'No data' : `${fmt(x.average)} average (${x.source})`); } }) }), {
+    legend: { show: false },
+    xAxis: Object.assign(S.axisStyle(t), { type: 'category', data: attSeasons.map((x) => (x.status === 'closed_doors' ? x.label + '\nno fans' : x.label)) }),
+    yAxis: Object.assign(S.axisStyle(t), { type: 'value', min: 0 }),
+    grid: { left: 8, right: 16, top: 30, bottom: 8, containLabel: true },
+    series: [{ type: 'bar', name: 'Average crowd', barMaxWidth: 28,
+      data: attSeasons.map((x) => ({ value: x.average, itemStyle: { color: x.source === 'Wikipedia' ? t.seq[1] : t.series[0] } })),
+      itemStyle: { borderRadius: [4, 4, 0, 0] } }],
+  }));
+  S.tableView('c-att-season', ['Season', 'Average crowd', 'Source', 'Highest'], attSeasons.map((x) => [x.label,
+    x.status === 'closed_doors' ? 'Closed doors' : x.average, x.source || '', x.highest || '']));
+
+  const clubs = att.by_club;
+  S.make('c-att-club', (t) => Object.assign(S.base(t, { legend: { show: false }, tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' }, valueFormatter: (v) => fmt(v) }) }), {
+    grid: { left: 8, right: 56, top: 8, bottom: 8, containLabel: true },
+    yAxis: Object.assign(S.axisStyle(t, { splitLine: { show: false } }), { type: 'category', inverse: true, data: clubs.map((c) => c.team), axisLabel: { color: t.ink2, fontSize: 12 } }),
+    xAxis: Object.assign(S.axisStyle(t), { type: 'value' }),
+    series: [{ type: 'bar', name: 'Average home crowd', data: clubs.map((c) => c.average_all), barMaxWidth: 14,
+      itemStyle: { color: t.series[0], borderRadius: [0, 4, 4, 0] },
+      label: { show: true, position: 'right', color: t.ink2, fontSize: 11, formatter: (p) => fmt(p.value) } }],
+  }));
+  S.tableView('c-att-club', ['Club', 'Average home crowd', ...attSeasons.filter((x) => x.source === 'FotMob').map((x) => x.label)],
+    clubs.map((c) => [c.team, c.average_all, ...attSeasons.filter((x) => x.source === 'FotMob').map((x) => (c.seasons.find((y) => y.season === x.season) || {}).average ?? '')]));
+
+  const stads = att.by_stadium;
+  S.make('c-att-stadium', (t) => Object.assign(S.base(t, { legend: { show: false }, tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' },
+    formatter: (ps) => { const x = stads[ps[0].dataIndex]; return `<b>${esc(x.stadium)}</b><br>Average ${fmt(Math.round(x.average))} over ${x.matches} matches<br>Highest ${fmt(x.highest)}<br>Main tenants: ${esc(x.clubs)}`; } }) }), {
+    grid: { left: 8, right: 56, top: 8, bottom: 8, containLabel: true },
+    xAxis: Object.assign(S.axisStyle(t), { type: 'value', splitNumber: 3 }),
+    yAxis: Object.assign(S.axisStyle(t, { splitLine: { show: false } }), { type: 'category', inverse: true, data: stads.map((x) => x.stadium.replace('Jawaharlal Nehru Stadium', 'JN Stadium').replace(' (VYBK)', '')), axisLabel: { color: t.ink2, fontSize: 12, width: 220, overflow: 'truncate' } }),
+    series: [{ type: 'bar', name: 'Average crowd', data: stads.map((x) => Math.round(x.average)), barMaxWidth: 14,
+      itemStyle: { color: t.series[0], borderRadius: [0, 4, 4, 0] },
+      label: { show: true, position: 'right', color: t.ink2, fontSize: 11, formatter: (p) => fmt(p.value) } }],
+  }));
+  S.tableView('c-att-stadium', ['Stadium', 'Matches', 'Average', 'Highest', 'Main tenants'], stads.map((x) => [x.stadium, x.matches, Math.round(x.average), x.highest, x.clubs]));
+
+  const sel = document.getElementById('att-club-select');
+  sel.innerHTML = clubs.map((c) => `<option>${esc(c.team)}</option>`).join('');
+  let trend = null;
+  const drawTrend = () => {
+    const c = clubs.find((x) => x.team === sel.value);
+    document.getElementById('att-club-title').textContent = `${c.team}: average home crowd by season`;
+    const build = (t) => Object.assign(S.base(t, { legend: { show: false }, tooltip: Object.assign(S.base(t).tooltip, { axisPointer: { type: 'shadow' }, valueFormatter: (v) => fmt(v) }) }), {
+      grid: { left: 8, right: 16, top: 16, bottom: 8, containLabel: true },
+      xAxis: Object.assign(S.axisStyle(t), { type: 'category', data: c.seasons.map((x) => x.label) }),
+      yAxis: Object.assign(S.axisStyle(t), { type: 'value', min: 0 }),
+      series: [{ type: 'bar', name: 'Average home crowd', data: c.seasons.map((x) => x.average), barMaxWidth: 28, itemStyle: { color: t.series[0], borderRadius: [4, 4, 0, 0] } }],
+    });
+    if (!trend) trend = S.make('c-att-trend', build); else S.rebuild(trend, build);
+  };
+  sel.addEventListener('input', drawTrend);
+  drawTrend();
+  document.getElementById('t-crowds').innerHTML = '<thead><tr><th style="text-align:left">Match</th><th>Season</th><th>Crowd</th></tr></thead><tbody>' +
+    att.biggest_crowds.map((x) => `<tr><td style="text-align:left">${esc(x.home)} v ${esc(x.away)}<br><span class="legend-note">${esc(x.stadium)}</span></td><td>${esc(x.season)}</td><td>${fmt(x.attendance)}</td></tr>`).join('') + '</tbody>';
 
   // ---- best XI
   const rows433 = [['Striker'], ['Attacking midfielder / winger', 'Attacking midfielder / winger'],

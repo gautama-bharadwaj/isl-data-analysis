@@ -14,7 +14,9 @@
     <a class="brand" href="index.html">ISL in Numbers</a>
     <nav>
       <a href="#league">The league</a>
+      <a href="#setplays">Set plays</a>
       <a href="#champions">Champions</a>
+      <a href="#crowds">Crowds</a>
       <a href="#xi">Best XI</a>
       <a href="#positions">By position</a>
       <a href="#leaders">Leaderboards</a>
@@ -74,9 +76,31 @@
     </div>
   </section>
 
+
+  <!-- SET PLAYS -->
+  <section class="chapter" id="setplays">
+    <div class="kicker">2 · Set plays</div>
+    <h2>Set plays and penalties bring about three goals in ten</h2>
+    <p>Every goal since <span class="sp-first">2020–21</span> sorted by how it was scored: open play, corners, free kicks (direct and indirect), long throw-ins, penalties, or own goals. Set plays mattered most in <strong id="sp-peak">2020–21</strong>, the closed-doors season in Goa, and their share has fallen since.</p>
+    <div class="grid one">
+      <div class="card">
+        <h3>How goals were scored, by season</h3>
+        <p class="sub">Share of all goals (%). The figure above each bar is the share from set plays and penalties. 2026–27 is still in progress</p>
+        <div class="chart tall" id="c-setplay"></div>
+      </div>
+    </div>
+    <div class="grid one">
+      <div class="card">
+        <h3>Which clubs rely most on set plays</h3>
+        <p class="sub">Share of each club's goals (%) since <span class="sp-first">2020–21</span>, clubs with 30+ goals, sorted by set-play share</p>
+        <div class="chart tall" id="c-setplay-club"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- 2. CHAMPIONS -->
   <section class="chapter" id="champions">
-    <div class="kicker">2 · Champions</div>
+    <div class="kicker">3 · Champions</div>
     <h2>Topping the table and lifting the trophy are different things</h2>
     <p>The ISL crowns its champion in a playoff final, and the regular-season leader has gone on to win it only <strong id="double-count">a few times</strong>. Clubs are shown under their current names, so Mohun Bagan SG includes ATK and ATK Mohun Bagan, and SC Delhi includes Hyderabad FC.</p>
     <div class="grid one">
@@ -95,9 +119,48 @@
     </div>
   </section>
 
+
+  <!-- CROWDS -->
+  <section class="chapter" id="crowds">
+    <div class="kicker">4 · Crowds</div>
+    <h2>Crowds have more than halved since the early seasons</h2>
+    <p>The ISL drew about <strong id="att-peak">27,000</strong> a match in <span id="att-peak-season">2015</span>. By <span id="att-latest-season">2025–26</span> the average was <strong id="att-latest">8,500</strong>. The 2020–21 and 2021–22 seasons were played behind closed doors. Kolkata's two giants, Mohun Bagan and East Bengal, draw by far the biggest crowds at the Salt Lake Stadium. All ten of the largest recent attendances were there, topped by <strong id="att-top">62,542</strong> for the Kolkata derby in 2022–23.</p>
+    <div class="grid one">
+      <div class="card">
+        <h3>Average crowd per match, by season</h3>
+        <p class="sub">Seasons up to 2018–19 use the published league average (Wikipedia). Later seasons are averaged from every match's attendance (FotMob)</p>
+        <div class="chart" id="c-att-season"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Average home crowd by club</h3>
+        <p class="sub">All home matches with a recorded crowd, 2019–20 and 2022–23 onward</p>
+        <div class="chart tall" id="c-att-club"></div>
+      </div>
+      <div class="card">
+        <h3>Average crowd by stadium</h3>
+        <p class="sub">Stadiums with 5+ matches with a recorded crowd and stadium name, since 2019–20</p>
+        <div class="chart tall" id="c-att-stadium"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3 id="att-club-title">One club's crowds over time</h3>
+        <div class="filters" style="margin:4px 0 0"><label>Club <select id="att-club-select"></select></label></div>
+        <div class="chart short" id="c-att-trend"></div>
+      </div>
+      <div class="card">
+        <h3>Biggest crowds</h3>
+        <p class="sub">Largest recorded attendances, 2019–20 onward</p>
+        <div class="table-scroll" style="max-height:none"><table class="data" id="t-crowds"></table></div>
+      </div>
+    </div>
+  </section>
+
   <!-- 3. BEST XI -->
   <section class="chapter" id="xi">
-    <div class="kicker">3 · Best XI</div>
+    <div class="kicker">5 · Best XI</div>
     <h2>The best XI since 2019–20</h2>
     <p>The top-rated player at each spot of a 4-3-3, from players with at least 2,000 minutes since 2019–20, when player stats begin. The number on each player is their position score out of 100: how they rank against everyone else who played that position. The Indian XI applies the same scores to Indian players only.</p>
     <div class="seg" role="group" aria-label="Choose XI">
@@ -110,7 +173,7 @@
 
   <!-- 4. POSITIONS -->
   <section class="chapter" id="positions">
-    <div class="kicker">4 · By position</div>
+    <div class="kicker">6 · By position</div>
     <h2>The top ten at every position</h2>
     <p>Each score combines several stats for that position. Every stat becomes a percentile against the other qualified players at the position, and the percentiles are weighted. The columns show each player's percentile for each stat, so you can see why they rank where they do.</p>
     <div class="tabs" role="tablist" id="pos-tabs"></div>
@@ -123,7 +186,7 @@
 
   <!-- 5. LEADERS -->
   <section class="chapter" id="leaders">
-    <div class="kicker">5 · Leaderboards</div>
+    <div class="kicker">7 · Leaderboards</div>
     <h2>All-time scorers, finishers and shot-stoppers</h2>
     <p>Sunil Chhetri is the ISL's all-time top scorer. The scorers chart counts every goal since 2014. The other charts use the xG era from 2020–21, where we can compare goals with the quality of chances.</p>
     <div class="grid">
@@ -153,10 +216,11 @@
 
   <!-- 6. METHOD -->
   <section class="chapter" id="method">
-    <div class="kicker">6 · Method and data</div>
+    <div class="kicker">8 · Method and data</div>
     <h2>Where the numbers come from</h2>
     <div class="prose">
       <p><strong>Data.</strong> Match, player and shot data comes from <a href="https://www.fotmob.com/leagues/9478/overview/indian-super-league">FotMob</a>. Results and goals cover every season from 2014. Per-player match stats start in 2019–20 (2018–19 has them for only 15 matches), and xG and shot maps start in 2020–21. <a href="https://github.com/statsbomb/open-data">StatsBomb</a> also publishes free event data for 2021–22.</p>
+      <p><strong>Crowds.</strong> Match attendances come from FotMob for 2019–20 and from 2022–23 onward. For 2014 to 2018–19 the page uses the published league averages from <a href="https://en.wikipedia.org/wiki/Indian_Super_League_attendance">Wikipedia</a>, which match FotMob exactly for the seasons both cover. Clubs and stadiums only appear from FotMob seasons.</p>
       <p><strong>Positions.</strong> Each player's position is where they most often started: goalkeeper, centre-back, full-back or wing-back, central midfielder, attacking midfielder or winger, or striker.</p>
       <p><strong>Rankings.</strong> Stats are converted to per-90-minute rates and percentages. All-time rankings need 2,000 minutes and season rankings need 900. Each stat becomes a percentile among qualified players at the same position, and the percentiles are combined with position-specific weights, shown under each position table above.</p>
       <p><strong>Limits.</strong> Event data can't capture everything: positioning, pressing and leadership don't show up in tackles and passes. A player's score also depends on the team around them. Treat the rankings as a well-informed starting point for argument, not a final verdict.</p>

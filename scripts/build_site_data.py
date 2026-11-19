@@ -9,6 +9,8 @@ Reads data/processed/*.csv and writes docs/data/*.json:
   best_xi.json       all-time best XI, best Indian XI and the best player per position each season
   leaderboards.json  all-time leaders: goals, xG over/under-performance, free kicks, dribbles, tackles...
   players.json       one row per player per season with per-90 stats, for the explorer
+  set_play.json      goals by type (open play, corners, free kicks, penalties...) by season and by club
+  attendance.json    crowds by season, by club and by stadium
 
 Only aggregated numbers are written, never raw match data.
 
@@ -230,6 +232,115 @@ def league_trends(m: pd.DataFrame, t: pd.DataFrame, s: pd.DataFrame, p: pd.DataF
     return out
 
 
+# ---------------------------------------------------------------- set plays
+
+GOAL_TYPES = [
+    ("Open play", ("RegularPlay", "FastBreak", "IndividualPlay")),
+    ("Corners", ("FromCorner",)),
+    ("Free kicks", ("FreeKick", "SetPiece")),
+    ("Throw-ins", ("ThrowInSetPiece",)),
+    ("Penalties", ("Penalty",)),
+]
+
+
+def set_play(s: pd.DataFrame, m: pd.DataFrame) -> dict:
+    """Goals by how they were scored, from the shot maps (2020-21 onward)."""
+    # Only seasons where (nearly) every match has a shot map.
+    shot_matches = s.groupby("season").match_id.nunique()
+    full = [x for x, n in shot_matches.items() if n >= 0.8 * (m.season == x).sum()]
+    goals = s[s.is_goal & s.season.isin(full)].copy()
+    kind = {sit: name for name, sits in GOAL_TYPES for sit in sits}
+    goals["type"] = np.where(goals.own_goal.fillna(False), "Own goals", goals.situation.map(kind).fillna("Open play"))
+    order = [n for n, _ in GOAL_TYPES] + ["Own goals"]
+    by_season = []
+    for season, g in goals.groupby("season"):
+        counts = g.type.value_counts()
+        total = int(len(g))
+        set_total = int(sum(counts.get(n, 0) for n in ("Corners", "Free kicks", "Throw-ins", "Penalties")))
+        by_season.append({
+            "season": season, "label": season_label(season), "goals": total,
+            "counts": {n: int(counts.get(n, 0)) for n in order},
+            "set_play_pct": r(100 * set_total / total, 1),
+            "direct_free_kicks": int((g.situation == "FreeKick").sum()),
+        })
+    # By club: goals scored, regular season and playoffs, own goals left out.
+    scored = goals[goals.type != "Own goals"].merge(
+        pd.concat([m[["match_id", "home_team_id", "home_team"]].rename(columns={"home_team_id": "team_id", "home_team": "team"}),
+                   m[["match_id", "away_team_id", "away_team"]].rename(columns={"away_team_id": "team_id", "away_team": "team"})]),
+        on=["match_id", "team_id"], how="left")
+    by_club = []
+    for team, g in scored.groupby("team"):
+        if len(g) < 30:
+            continue
+        counts = g.type.value_counts()
+        set_total = int(sum(counts.get(n, 0) for n in ("Corners", "Free kicks", "Throw-ins", "Penalties")))
+        by_club.append({"team": team, "goals": int(len(g)), "counts": {n: int(counts.get(n, 0)) for n in order[:-1]},
+                        "set_play_pct": r(100 * set_total / len(g), 1)})
+    by_club.sort(key=lambda x: -x["set_play_pct"])
+    return {"types": order, "by_season": by_season, "by_club": by_club,
+            "first_season": season_label(min(goals.season))}
+
+
+# ---------------------------------------------------------------- attendance
+
+# FotMob has no crowd figures before 2019-20. League averages for those seasons are the
+# published averages from https://en.wikipedia.org/wiki/Indian_Super_League_attendance
+# (its figures match FotMob exactly for 2022-23 to 2024-25, which both cover).
+WIKI_ATTENDANCE = {"2014": 24711, "2015": 27111, "2016": 21003, "2017-2018": 15047, "2018-2019": 13155}
+CLOSED_DOORS = {"2020-2021", "2021-2022"}
+
+
+def attendance(m: pd.DataFrame) -> dict:
+    m = m.copy()
+    by_season = []
+    for season, g in m.groupby("season"):
+        known = g.attendance.dropna()
+        row = {"season": season, "label": season_label(season), "matches": int(len(g))}
+        if season in CLOSED_DOORS:
+            row.update(status="closed_doors", average=None, source=None)
+        elif len(known) >= 0.8 * len(g):
+            row.update(status="ok", average=r(known.mean(), 0), median=r(known.median(), 0), total=int(known.sum()),
+                       highest=int(known.max()), matches_with_crowd=int(len(known)), source="FotMob")
+        elif season in WIKI_ATTENDANCE:
+            row.update(status="ok", average=WIKI_ATTENDANCE[season], source="Wikipedia")
+        else:
+            row.update(status="missing", average=None, source=None)
+        by_season.append(row)
+
+    crowd = m[m.attendance.notna() & ~m.season.isin(CLOSED_DOORS)]
+    club = crowd.groupby(["home_team", "season"]).attendance.agg(["mean", "size"]).reset_index()
+    club = club[club["size"] >= 3]
+    clubs = []
+    for team, g in club.groupby("home_team"):
+        g = g.sort_values("season")
+        clubs.append({
+            "team": team,
+            "seasons": [{"season": x.season, "label": season_label(x.season), "average": r(x["mean"], 0), "home_matches": int(x["size"])}
+                        for _, x in g.iterrows()],
+            "average_all": r(crowd[crowd.home_team == team].attendance.mean(), 0),
+        })
+    clubs.sort(key=lambda c: -c["average_all"])
+
+    stad = crowd[crowd.stadium.notna()].groupby("stadium").agg(
+        matches=("match_id", "size"), average=("attendance", "mean"), highest=("attendance", "max"),
+        first_season=("season", "min"), last_season=("season", "max"),
+        clubs=("home_team", lambda x: ", ".join(x.value_counts().index[:2])),
+    ).reset_index()
+    stad = stad[stad.matches >= 5]
+    stad["first_season"] = stad.first_season.map(season_label)
+    stad["last_season"] = stad.last_season.map(season_label)
+    top = crowd.sort_values("attendance", ascending=False).head(10)
+    return {
+        "by_season": by_season,
+        "by_club": clubs,
+        "by_stadium": records(stad.sort_values("average", ascending=False), 1),
+        "biggest_crowds": [{"season": season_label(x.season), "date": x.date, "home": x.home_team, "away": x.away_team,
+                            "stadium": x.stadium, "attendance": int(x.attendance)} for _, x in top.iterrows()],
+        "match_level_seasons": sorted({season_label(x) for x in crowd.season.unique() if (m.season == x).sum() and
+                                       crowd[crowd.season == x].shape[0] >= 0.8 * (m.season == x).sum()}),
+    }
+
+
 # ---------------------------------------------------------------- team seasons
 
 def team_seasons(m: pd.DataFrame, t: pd.DataFrame, teams: pd.DataFrame) -> list[dict]:
@@ -380,6 +491,8 @@ def main() -> None:
 
     write("seasons.json", league_trends(m, t, s, p))
     write("teams.json", team_seasons(m, t, teams))
+    write("set_play.json", set_play(s, m))
+    write("attendance.json", attendance(m))
 
     base = player_base(p, s, m)
     base = base[base.season >= "2019"]  # seasons with player stats for (almost) every match
